@@ -67,6 +67,7 @@ module Eta.TypeCheck.TcType (
   isSigmaTy, isRhoTy, isOverloadedTy,
   isFloatingTy, isDoubleTy, isFloatTy, isIntTy, isWordTy, isStringTy,
   isIntegerTy, isBoolTy, isUnitTy, isCharTy, isCallStackTy, isCallStackPred,
+  isMaybeTy,
   isTauTy, isTauTyCon, tcIsTyVarTy, tcIsForAllTy,
   isPredTy, isTyVarClassPred, isTyVarExposed, isTyVarUnderDatatype,
 
@@ -1413,6 +1414,7 @@ isUnitTy       = is_tc unitTyConKey
 isCharTy       = is_tc charTyConKey
 isAnyTy        = is_tc anyTyConKey
 
+
 -- | Does a type represent a floating-point number?
 isFloatingTy :: Type -> Bool
 isFloatingTy ty = isFloatTy ty || isDoubleTy ty
@@ -1423,6 +1425,9 @@ isStringTy ty
   = case tcSplitTyConApp_maybe ty of
       Just (tc, [arg_ty]) -> tc == listTyCon && isCharTy arg_ty
       _                   -> False
+
+isMaybeTy :: Type -> Bool
+isMaybeTy       = is_tc maybeTyConKey
 
 -- | Is a type a 'CallStack'?
 isCallStackTy :: Type -> Bool
