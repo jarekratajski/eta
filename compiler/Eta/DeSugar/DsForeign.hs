@@ -887,8 +887,15 @@ getArgFt extendsInfo ty
   | otherwise = getPrimFt ty
 
 typeDataConClass :: DynFlags -> ExtendsInfo -> Type -> Text
-typeDataConClass dflags extendsInfo =
-  dataConClass dflags . head . tyConDataCons . tyConAppTyCon . reduceType extendsInfo
+typeDataConClass dflags extendsInfo aType
+   | isMaybeTy aType = error $ "JAREK : type(4) is "
+               ++  ( showSDocUnsafe $ ppr  aType )
+               ++ "reduced : " ++ (showSDocUnsafe $ ppr  reduced )
+               ++ "final : " ++ (T.unpack $ f aType )
+   | otherwise = f aType
+   where
+      f = dataConClass dflags . head . tyConDataCons . tyConAppTyCon . reduceType extendsInfo
+      reduced = reduceType extendsInfo aType
 
 reduceType :: ExtendsInfo -> Type -> Type
 reduceType extendsInfo ty
@@ -898,12 +905,14 @@ reduceType extendsInfo ty
        | otherwise -> pprPanic "reduceType: unconstrained type variable" (ppr ty)
   | otherwise = ty
 
+
 unboxResult :: Type -> Text -> FieldType -> Code
 unboxResult ty resClass resPrimFt
   | isBoolTy ty = getTagMethod mempty
                <> iconst jbool 1
                <> isub
                <> greturn resPrimFt
+  | isMaybeTy ty = error $ "JAREK : type(3) is " ++  ( showSDocUnsafe $ ppr  ty ) ++ " pft: " ++  ( show  resPrimFt )  ++ " c:" ++ (show resClass)
   | otherwise = gconv closureType resClassFt
              <> getfield (mkFieldRef resClass (constrField 1) resPrimFt)
              <> greturn resPrimFt
