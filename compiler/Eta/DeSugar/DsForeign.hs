@@ -68,6 +68,8 @@ import qualified Data.Text as T
 import Codec.JVM
 import Codec.JVM.Attr hiding (ExtendsBound, SuperBound)
 import qualified Codec.JVM.Attr as A
+import qualified Codec.JVM.ASM.Code.Instr as IT
+import qualified Codec.JVM.Opcode as OP
 
 type Binding = (Id, CoreExpr)
 type ClassExport = (Text, MethodDef, Maybe FieldDef)
@@ -909,6 +911,10 @@ unboxResult ty resClass resPrimFt dynFlags
              <> getfield (mkFieldRef resClass (constrField 1) resPrimFt)
              <> greturn resPrimFt
   where resClassFt = obj resClass
+
+checkCastSingle :: IClassName -> Code
+checkCastSingle iclass = mkCode' $ IT.op OP.checkcast
+                        <> IT.ix (cclass iclass)
 
 unboxMaybe::Type -> Text -> FieldType -> DynFlags -> Code
 unboxMaybe _ _ resPrimFt dynFlags = gdup
