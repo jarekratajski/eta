@@ -693,7 +693,7 @@ dsFExport closureId inheritsFamTyCon famInstEnvs co externalName classSpec mod =
           <> invokestatic (mkMethodRef rtsGroup evalMethod evalArgFts (ret closureType))
           <> (if voidResult
               then pop closureType <> vreturn
-              else unboxResult resType resClass rawResFt)
+              else unboxResult resType resClass rawResFt dflags)
 
   return ( rawClassSpec
          , addAttrsToMethodDef mAttrs $
@@ -887,15 +887,8 @@ getArgFt extendsInfo ty
   | otherwise = getPrimFt ty
 
 typeDataConClass :: DynFlags -> ExtendsInfo -> Type -> Text
-typeDataConClass dflags extendsInfo aType
-   | isMaybeTy aType = error $ "JAREK : type(4) is "
-               ++  ( showSDocUnsafe $ ppr  aType )
-               ++ "reduced : " ++ (showSDocUnsafe $ ppr  reduced )
-               ++ "final : " ++ (T.unpack $ f aType )
-   | otherwise = f aType
-   where
-      f = dataConClass dflags . head . tyConDataCons . tyConAppTyCon . reduceType extendsInfo
-      reduced = reduceType extendsInfo aType
+typeDataConClass dflags extendsInfo =
+   dataConClass dflags . head . tyConDataCons . tyConAppTyCon . reduceType extendsInfo
 
 reduceType :: ExtendsInfo -> Type -> Type
 reduceType extendsInfo ty
@@ -905,19 +898,26 @@ reduceType extendsInfo ty
        | otherwise -> pprPanic "reduceType: unconstrained type variable" (ppr ty)
   | otherwise = ty
 
-
-unboxResult :: Type -> Text -> FieldType -> Code
-unboxResult ty resClass resPrimFt
+unboxResult :: Type -> Text -> FieldType -> DynFlags ->Code
+unboxResult ty resClass resPrimFt dynFlags
   | isBoolTy ty = getTagMethod mempty
                <> iconst jbool 1
                <> isub
                <> greturn resPrimFt
-  | isMaybeTy ty = error $ "JAREK : type(3) is " ++  ( showSDocUnsafe $ ppr  ty ) ++ " pft: " ++  ( show  resPrimFt )  ++ " c:" ++ (show resClass)
+  | isMaybeTy ty =  unboxMaybe ty resClass resPrimFt dynFlags
   | otherwise = gconv closureType resClassFt
              <> getfield (mkFieldRef resClass (constrField 1) resPrimFt)
              <> greturn resPrimFt
   where resClassFt = obj resClass
 
+unboxMaybe::Type -> Text -> FieldType -> DynFlags -> Code
+unboxMaybe _ _ resPrimFt dynFlags = gdup
+     <> getstatic ( mkFieldRef (dataConClass dynFlags nothingDataCon) "INSTANCE" nothingType)
+     <> if_acmpeq
+         (aconst_null resPrimFt <> greturn resPrimFt )
+         ((checkCastSingle $ IClassName  (dataConClass dynFlags justDataCon)) <> getfield (mkFieldRef  (dataConClass dynFlags justDataCon) (constrField 1) resPrimFt) <> greturn resPrimFt)
+      where
+         nothingType = ObjectType ( IClassName  (dataConClass dynFlags nothingDataCon))
 
 getPrimFt :: Type -> FieldType
 getPrimFt ty = maybe (fromJust $ repFieldType_maybe ty) id (repFieldType_maybe =<< getPrimTyOf ty)

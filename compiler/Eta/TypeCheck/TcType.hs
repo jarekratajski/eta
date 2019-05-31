@@ -1427,7 +1427,7 @@ isStringTy ty
       _                   -> False
 
 isMaybeTy :: Type -> Bool
-isMaybeTy       = is_tc maybeTyConKey
+isMaybeTy = is_tc maybeTyConKey
 
 -- | Is a type a 'CallStack'?
 isCallStackTy :: Type -> Bool
