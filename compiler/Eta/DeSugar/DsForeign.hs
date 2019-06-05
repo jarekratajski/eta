@@ -66,10 +66,12 @@ import qualified Data.Text as T
 
 
 import Codec.JVM
+import Codec.JVM.Const
 import Codec.JVM.Attr hiding (ExtendsBound, SuperBound)
 import qualified Codec.JVM.Attr as A
 import qualified Codec.JVM.ASM.Code.Instr as IT
 import qualified Codec.JVM.Opcode as OP
+
 
 type Binding = (Id, CoreExpr)
 type ClassExport = (Text, MethodDef, Maybe FieldDef)
