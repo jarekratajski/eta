@@ -998,6 +998,16 @@ tcSplitFunTys ty = case tcSplitFunTy_maybe ty of
                                        where
                                           (args,res') = tcSplitFunTys res
 
+--tcSplitFunTys ty = error $ "aType to split" ++ ( showSDocUnsafe $ pprType ty)
+--                     ++ " more: " ++ ( showSDocUnsafe $ pprType $ snd all )
+--                     ++ "even more:" ++ show  ( map (showSDocUnsafe . pprType ) (fst all) )
+--   where all = case tcSplitFunTy_maybe ty of
+--                        Nothing        -> ([], ty)
+--                        Just (arg,res) -> (arg:args, res')
+--                                       where
+--                                          (args,res') = tcSplitFunTys res
+
+
 tcSplitFunTy_maybe :: Type -> Maybe (Type, Type)
 tcSplitFunTy_maybe ty | Just ty' <- tcView ty           = tcSplitFunTy_maybe ty'
 tcSplitFunTy_maybe (FunTy arg res) | not (isPredTy arg) = Just (arg, res)

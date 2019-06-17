@@ -93,7 +93,7 @@ primRepFieldType_maybe :: PrimRep -> Maybe FieldType
 primRepFieldType_maybe VoidRep = Nothing
 primRepFieldType_maybe rep = Just $
   case rep of
-    PtrRep              -> closureType
+    PtrRep              -> jlong
     IntRep              -> jint
     WordRep             -> jint
     AddrRep             -> jlong

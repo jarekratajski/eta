@@ -747,9 +747,18 @@ flattenRepType (UnaryRep ty)     = [ty]
 --
 -- It's useful in the back end of the compiler.
 repType :: Type -> RepType
-repType ty
-  = go initRecTc ty
-  where
+repType ty = x
+--   | typeShow == "Object# HTest" = x
+--   | typeShow == "Proxy# HTest" = x
+--   | typeShow == "HTest" = x
+--   | typeShow == "Monad m" = x
+--   | typeShow == "t" = x
+--   | typeShow == "Int" = x
+--   | typeShow == "Object# a1" = x
+--   | otherwise  = error $ typeShow
+   where
+    -- typeShow  = showSDocUnsafe $ pprType ty
+    x = go initRecTc ty
     go :: RecTcChecker -> Type -> RepType
     go rec_nts ty                       -- Expand predicates and synonyms
       | Just ty' <- coreView ty

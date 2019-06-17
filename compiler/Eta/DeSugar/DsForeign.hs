@@ -779,7 +779,7 @@ dsFExport closureId inheritsFamTyCon famInstEnvs co externalName classSpec mod =
         rawResFt = fromJust resFt
 
         methodParams = map (uncurry genMethodParam) $ zip argTypes argFts
-        methodResult = fmap (genMethodParam resType) resFt
+        methodResult =  fmap (genMethodParam resType) resFt
         tyVarDecls = genTyVarDecls extendsInfo
         mAttrs
           | (null tyVars ||
@@ -919,6 +919,8 @@ checkCastSingle iclass = mkCode' $ IT.op OP.checkcast
                         <> IT.ix (cclass iclass)
 
 unboxMaybe::Type -> Text -> FieldType -> DynFlags -> Code
+-- unboxMaybe tp txt ft dynflags = error $ (show txt) ++ "->" ++ (showSDoc dynflags $ pprType tp) ++ "final : " ++ (  show  ft )
+-- below was working
 unboxMaybe _ _ resPrimFt dynFlags = gdup
      <> getstatic ( mkFieldRef (dataConClass dynFlags nothingDataCon) "INSTANCE" nothingType)
      <> if_acmpeq
@@ -928,7 +930,10 @@ unboxMaybe _ _ resPrimFt dynFlags = gdup
          nothingType = ObjectType ( IClassName  (dataConClass dynFlags nothingDataCon))
 
 getPrimFt :: Type -> FieldType
-getPrimFt ty = maybe (fromJust $ repFieldType_maybe ty) id (repFieldType_maybe =<< getPrimTyOf ty)
+getPrimFt ty = result
+--   | result  == ( BaseType JInt ) = result
+--   | otherwise = error $ show $ (fromJust $ repFieldType_maybe ty)
+   where result = maybe (fromJust $ repFieldType_maybe ty) id (repFieldType_maybe =<< getPrimTyOf ty)
 
 getPrimTyOf :: Type -> Maybe UnaryType
 getPrimTyOf ty
